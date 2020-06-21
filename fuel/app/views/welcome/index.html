@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>javascript app</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+<style>
+body {
+  margin: 0;
+  min-width: 250px;
+  background: #359c8b;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul li {
+  cursor: pointer;
+  padding: 5px 5px 5px 5px;
+  width: 25%;
+  float: left;
+  text-align: left;
+  list-style-type: none;
+  background: #7ed8df;
+  font-size: 18px;
+  transition: 0.2s;
+  margin-left: 490px;
+}
+
+ul li:nth-child(odd) {
+  background: #a6b8a6;
+}
+
+ul li:hover {
+  background: rgb(162, 170, 164);
+}
+
+ul li.checked {
+  background: rgb(101, 121, 233);
+  color: #fff;
+  text-decoration: line-through;
+}
+
+ul li.checked::before {
+  content: '';
+  float: center;
+  border-color: rgb(28, 8, 117);
+  border-style: solid;
+  border-width: 0 2px 2px 0;
+  top: 10px;
+  left: 16px;
+  transform: rotate(45deg);
+  height: 15px;
+  width: 7px;
+}
+
+
+.close {
+  position: relative;
+  right: 0;
+  float: right;
+  margin-left: 0px;
+  top: 0;
+  padding: 12px 16px 12px 16px;
+}
+
+.close:hover {
+  background-color: #f44336;
+  color: white;
+}
+
+.header {
+  background-color: #359c8b;
+  padding: 30px 110px;
+  color: white;
+  text-align: center;
+}
+
+.header:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+input {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  width: 35%;
+  padding: 10px;
+  float: center;
+  font-size: 16px;
+}
+
+.addBtn {
+  padding: 10px;
+  width: 10%;
+  background: #d9d9d9;
+  color: #555;
+  float: center;
+  text-align: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+  border-radius: 0;
+}
+
+.addBtn:hover {
+  background-color: rgb(184, 181, 207);
+}
+</style>
+
+
+</head>
+
+<body>
+    <div id="div1" class="header">
+        <h2 style="margin:5px">To Do List</h2>
+        <input type="text" id="input" name="input12" Placeholder="add event">
+        <button type="button" class="addBtn" onclick="createnewelement()">Add</button>
+    </div>
+
+    <ul id="list">
+    </ul> 
+
+    <script>
+           $.ajax({  
+               url: '/Welcome/info',  
+               type: 'GET',
+               dataType: 'json',
+               success: function (e) {
+                   var info = e;
+
+                for (var key in info) {
+                    if(info[key]['status']==1)
+                    {
+                document.getElementById("list").innerHTML += `<li> <span  onclick=func(${info[key]['id']})>${info[key]['inputfield']}</span><span class="close"><button type = "button" onclick="myFunction(${info[key]['id']})">×</button></span> </li>`;
+                    }
+                    else
+                    {
+                        document.getElementById("list").innerHTML += `<li class="checked"><span onclick=func(${info[key]['id']})> ${info[key]['inputfield']}</span> <span class="close"><button type = "button" onclick="myFunction(${info[key]['id']})">×</button></span> </li>`;
+
+                    }
+                }
+
+                var close = document.getElementsByClassName("close");
+                var i;
+                for (i = 0; i < close.length; i++) {
+                close[i].onclick = function() {
+                    var div = this.parentElement;
+                    div.style.display = "none";
+                }
+                }
+              },  
+               error: function (e) {
+                   console.log('Exception occured');  
+                   
+               }  
+           });
+
+        var close = document.getElementsByClassName("close");
+        var i;
+        for (i = 0; i < close.length; i++) {
+          close[i].onclick = function() {
+            var div = this.parentElement;
+            div.style.display = "none";
+          }
+        }
+        
+        var list = document.querySelector('ul');
+        list.addEventListener('click', function(ev) {
+          if (ev.target.tagName === 'LI') {
+            ev.target.classList.toggle('checked');
+          }
+        }, false);
+
+        function func(id)
+        {
+            $.ajax({  
+               url: '/Welcome/update/'+id,  
+               type: 'POST',
+               dataType: 'json',
+               success: function (e) {
+                   console.log(e);
+              },  
+               error: function (e) {
+                   console.log('Exception occured');    
+               }  
+           });
+        }
+
+        function createnewelement() {
+          var li = document.createElement("li");
+          var span1 = document.createElement("SPAN");
+          var inputValue = document.getElementById("input").value;
+          var status = 1;
+
+          dataarr = {
+              "fieldinput" : inputValue,
+              "status"  : status
+          };
+
+          var id_for_dlt = 0;
+          var t = document.createTextNode(inputValue);
+          span1.className = "checked";
+          span1.appendChild(t);
+
+          if (inputValue === '') {
+            alert("You must write something!");
+          } else {
+
+            $.ajax({  
+               url: '/Welcome/add',  
+               type: 'POST',
+               dataType: 'json',
+               data : dataarr,
+               success: function (e) {
+                 console.log('added succesfully');
+                 console.log(e['object']['id']);
+                 id_for_dlt = e['object']['id'];
+               },  
+               error: function (e) {
+                   console.log('Exception occured');  
+                   
+               }  
+           });
+           span1.addEventListener('click',function()
+           {
+             func(id_for_dlt);
+           });
+           li.appendChild(span1);
+
+            document.getElementById("list").appendChild(li);
+          }
+          document.getElementById("input").value = "";
+        
+          var span = document.createElement("SPAN");
+          var button = document.createElement("button");
+          button.innerHTML = "x";
+          span.className = "close";
+          span.appendChild(button);
+          li.appendChild(span);
+
+            button.addEventListener ("click", function() {
+              myFunction(id_for_dlt);
+
+            });
+        
+          for (i = 0; i < close.length; i++) {
+            close[i].onclick = function() {
+              var div = this.parentElement;
+              div.style.display = "none";
+            }
+          }
+        }
+        function myFunction(id)
+        {
+            $.ajax({  
+               url: '/Welcome/delete/'+id,  
+               type: 'POST',
+               dataType: 'json',
+               success: function (e) {
+                   console.log(e);
+              },  
+               error: function (e) {
+                   console.log('Exception occured');  
+                   
+               }  
+           });
+ 
+        }
+
+        </script>
+    
+
+</body>
+</html>
